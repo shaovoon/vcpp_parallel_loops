@@ -1,0 +1,20 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual Studio 2010
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "CPUBloom", "CPUBloom\CPUBloom.vcxproj", "{FD3B134E-E58B-4A9D-88A2-4806677A6BB0}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Win32 = Debug|Win32
+		Release|Win32 = Release|Win32
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{FD3B134E-E58B-4A9D-88A2-4806677A6BB0}.Debug|Win32.ActiveCfg = Debug|Win32
+		{FD3B134E-E58B-4A9D-88A2-4806677A6BB0}.Debug|Win32.Build.0 = Debug|Win32
+		{FD3B134E-E58B-4A9D-88A2-4806677A6BB0}.Release|Win32.ActiveCfg = Release|Win32
+		{FD3B134E-E58B-4A9D-88A2-4806677A6BB0}.Release|Win32.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

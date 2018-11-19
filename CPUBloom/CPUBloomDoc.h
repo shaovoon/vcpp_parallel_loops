@@ -47,6 +47,7 @@ public:
 	void SetOpenMPBenResult(int val);
 	void SetPPLBenResult(int val);
 	void SetAutoPBenResult(int val);
+	void SetPForEachBenResult(int val);
 
 	void BeginReset();
 	void EndReset();

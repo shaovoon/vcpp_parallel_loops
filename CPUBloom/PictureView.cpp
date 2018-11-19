@@ -8,6 +8,8 @@
 #include "CPUBloomDoc.h"
 #include "HyperThreading.h"
 #include <ppl.h>
+#include <algorithm>
+#include <execution>
 // CPictureView
 
 IMPLEMENT_DYNCREATE(CPictureView, CScrollView)
@@ -205,6 +207,10 @@ void CPictureView::OnDraw(CDC* pDC)
 			else if(m_nLoopMethod==BENCHMARK_AUTOP)
 			{
 				BenchmarkAutoP();
+			}
+			else if (m_nLoopMethod == BENCHMARK_PARALLEL_FOREACH)
+			{
+				BenchmarkParallelForEach();
 			}
 		}
 
@@ -555,34 +561,70 @@ bool CPictureView::BenchmarkAutoP()
 		}
 	}
 
-//#pragma loop(hint_parallel(8))
-//	for(UINT row = 0; row < bitmapDataDest.Height; ++row)
-//	{
-//		for(UINT col = 0; col < bitmapDataDest.Width; ++col)
-//		{
-//			UINT index = row * stride + col;
-//
-//			pixelsDest[index] = effect.ComputeBloomInt(pixelsSrc[index]);
-//		}
-		//UINT col = 0;
-		//while(col < bitmapDataDest.Width)
-		//{
-		//	UINT index = row * stride + col;
-
-		//	pixelsDest[index] = effect.ComputeBloomInt(pixelsSrc[index]);
-
-		//	++col;
-		//}
-//	}
-//	const int len = bitmapDataDest.Height * bitmapDataDest.Width;
-//#pragma loop(hint_parallel(4))
-//	for(int i=0; i<len; ++i)
-//	{
-//		pixelsDest[i] = effect.ComputeBloomInt(pixelsSrc[i]);
-//	}
 	DWORD endTime = timeGetTime();
 	CCPUBloomDoc* pDoc = (CCPUBloomDoc*)(GetDocument());
 	pDoc->SetAutoPBenResult(endTime-startTime);
+
+	m_pBmpBloom->UnlockBits(&bitmapDataDest);
+	m_pBmp->UnlockBits(&bitmapDataSrc);
+
+	return true;
+}
+
+bool CPictureView::BenchmarkParallelForEach()
+{
+	if (m_pBmp == NULL || m_pBmpBloom == NULL)
+		return false;
+
+	UINT* pixelsSrc = NULL;
+	UINT* pixelsDest = NULL;
+
+	using namespace Gdiplus;
+
+	BitmapData bitmapDataSrc;
+	BitmapData bitmapDataDest;
+	Rect rectDest(0, 0, m_pBmpBloom->GetWidth(), m_pBmpBloom->GetHeight());
+	Rect rectSrc(0, 0, m_pBmp->GetWidth(), m_pBmp->GetHeight());
+
+	m_pBmp->LockBits(
+		&rectSrc,
+		ImageLockModeRead,
+		PixelFormat32bppARGB,
+		&bitmapDataSrc);
+
+	m_pBmpBloom->LockBits(
+		&rectDest,
+		ImageLockModeRead,
+		PixelFormat32bppARGB,
+		&bitmapDataDest);
+
+	pixelsSrc = (UINT*)bitmapDataSrc.Scan0;
+	pixelsDest = (UINT*)bitmapDataDest.Scan0;
+
+	if (!pixelsSrc || !pixelsDest)
+		return false;
+
+	int stride = bitmapDataDest.Stride >> 2;
+
+	std::vector<UINT> vec_cnt(bitmapDataDest.Height);
+	std::iota(std::begin(vec_cnt), std::end(vec_cnt), 0);
+
+	DWORD startTime = timeGetTime();
+
+	std::for_each(std::execution::par, std::begin(vec_cnt), std::end(vec_cnt), [&](UINT row)
+	{
+		BloomEffect effect(m_fBloomIntensity, m_fBloomSaturation, m_fBaseIntensity, m_fBaseSaturation);
+		for (UINT col = 0; col < bitmapDataDest.Width; ++col)
+		{
+			UINT index = row * stride + col;
+
+			pixelsDest[index] = effect.ComputeBloomInt(pixelsSrc[index]);
+		}
+	});
+
+	DWORD endTime = timeGetTime();
+	CCPUBloomDoc* pDoc = (CCPUBloomDoc*)(GetDocument());
+	pDoc->SetPForEachBenResult(endTime - startTime);
 
 	m_pBmpBloom->UnlockBits(&bitmapDataDest);
 	m_pBmp->UnlockBits(&bitmapDataSrc);

@@ -39,6 +39,7 @@ void CControlView::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_STATIC_PPL_RES, m_staticPPLBenResult);
 	DDX_Control(pDX, IDC_STATIC_AUTOP_RES, m_staticAutoPBenResult);
 	DDX_Radio(pDX, IDC_RDO_SERIAL, m_nLoopMethodSelected);
+	DDX_Control(pDX, IDC_STATIC_PFOREACH_RES, m_staticPForEachBenResult);
 }
 
 BEGIN_MESSAGE_MAP(CControlView, CFormView)
@@ -53,6 +54,7 @@ BEGIN_MESSAGE_MAP(CControlView, CFormView)
 	ON_COMMAND(IDC_RDO_AUTOP, &CControlView::OnRdoAutoP)
 	ON_BN_CLICKED(IDC_RDO_SERIAL, &CControlView::OnClickedRdoSerial)
 	ON_BN_CLICKED(IDC_BTN_RESET, &CControlView::OnBnClickedBtnReset)
+	ON_BN_CLICKED(IDC_RDO_PFOREACH, &CControlView::OnBnClickedRdoPforeach)
 END_MESSAGE_MAP()
 
 
@@ -265,6 +267,12 @@ void CControlView::SetAutoPBenResult(int val)
 	m_staticAutoPBenResult.SetWindowTextW(str+L"ms");
 }
 
+void CControlView::SetPForEachBenResult(int val)
+{
+	CString str;
+	str.Format(L"%d", val);
+	m_staticPForEachBenResult.SetWindowTextW(str + L"ms");
+}
 
 //void CControlView::OnClickedRdoSerial()
 //{
@@ -310,6 +318,13 @@ void CControlView::OnClickedRdoSerial()
 	pDoc->SetLoopMethod(m_nLoopMethodSelected);
 }
 
+void CControlView::OnBnClickedRdoPforeach()
+{
+	UpdateData();
+
+	CCPUBloomDoc* pDoc = (CCPUBloomDoc*)(GetDocument());
+	pDoc->SetLoopMethod(m_nLoopMethodSelected);
+}
 
 void CControlView::OnBnClickedBtnReset()
 {

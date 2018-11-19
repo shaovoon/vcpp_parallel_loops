@@ -39,6 +39,7 @@ public:
 	bool BenchmarkOpenMP();
 	bool BenchmarkPPL();
 	bool BenchmarkAutoP();
+	bool BenchmarkParallelForEach();
 
 	void BeginReset();
 	void EndReset();

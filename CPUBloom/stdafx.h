@@ -48,6 +48,7 @@
 #define BENCHMARK_OPENMP 1
 #define BENCHMARK_PPL 2
 #define BENCHMARK_AUTOP 3
+#define BENCHMARK_PARALLEL_FOREACH 4
 
 #include <MMSystem.h>
 #pragma comment(lib, "winmm.lib")

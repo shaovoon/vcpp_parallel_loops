@@ -9,10 +9,10 @@
 #include <omp.h>
 #include <ppl.h>
 
-const size_t size=50000000;
-BYTE* a = new BYTE[size];
-BYTE* b = new BYTE[size];
-BYTE* c = new BYTE[size];
+const size_t TOTAL=50000000;
+BYTE* a = new BYTE[TOTAL];
+BYTE* b = new BYTE[TOTAL];
+BYTE* c = new BYTE[TOTAL];
 
 using namespace std;
 
@@ -51,7 +51,7 @@ void Init()
 	srand( (unsigned int)(time(NULL)) );
 
 	#pragma loop(hint_parallel(8))
-	for(int i=0; i<size; ++i)
+	for(int i=0; i<TOTAL; ++i)
 	{
 		a[i] = (BYTE)(rand()%127);
 		b[i] = (BYTE)(rand()%127);
@@ -69,7 +69,7 @@ void Serial()
 {
 	StopWatch watch;
 	watch.Start();
-	for(size_t i=0; i<size; ++i)
+	for(size_t i=0; i<TOTAL; ++i)
 	{
 		c[i] = a[i] * b[i];
 	}
@@ -85,7 +85,7 @@ void OpenMP()
 	//omp_set_dynamic( 0 );
 	//omp_set_num_threads( 8 );
 	#pragma omp parallel for
-	for(int i=0; i<size; ++i)
+	for(int i=0; i<TOTAL; ++i)
 	{
 		c[i] = a[i] * b[i];
 	}
@@ -98,7 +98,7 @@ void PPL()
 {
 	StopWatch watch;
 	watch.Start();
-	Concurrency::parallel_for(size_t(0), size, [&](size_t i)
+	Concurrency::parallel_for(size_t(0), TOTAL, [&](size_t i)
 	{
 		c[i] = a[i] * b[i];
 	}
@@ -113,7 +113,7 @@ void AutoParallelizer()
 	StopWatch watch;
 	watch.Start();
 	#pragma loop(hint_parallel(8))
-	for(size_t i=0; i<size; ++i)
+	for(size_t i=0; i<TOTAL; ++i)
 	{
 		c[i] = a[i] * b[i];
 	}

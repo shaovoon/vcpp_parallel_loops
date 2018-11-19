@@ -21,6 +21,7 @@ public:
 	void SetOpenMPBenResult(int val);
 	void SetPPLBenResult(int val);
 	void SetAutoPBenResult(int val);
+	void SetPForEachBenResult(int val);
 
 	
 protected:
@@ -68,6 +69,8 @@ public:
 	afx_msg void OnRdoAutoP();
 	afx_msg void OnClickedRdoSerial();
 	afx_msg void OnBnClickedBtnReset();
+	CStatic m_staticPForEachBenResult;
+	afx_msg void OnBnClickedRdoPforeach();
 };
 
 

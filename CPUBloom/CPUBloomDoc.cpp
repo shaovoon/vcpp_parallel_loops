@@ -234,6 +234,14 @@ void CCPUBloomDoc::SetAutoPBenResult(int val)
 	pCtrlView->SetAutoPBenResult(val);
 }
 
+void CCPUBloomDoc::SetPForEachBenResult(int val)
+{
+	POSITION posView = GetFirstViewPosition();
+	CControlView* pCtrlView = (CControlView*)(GetNextView(posView));
+
+	pCtrlView->SetPForEachBenResult(val);
+}
+
 void CCPUBloomDoc::BeginReset()
 {
 	POSITION posView = GetFirstViewPosition();

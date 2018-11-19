@@ -1,7 +1,11 @@
 ﻿
-Microsoft Visual Studio Solution File, Format Version 11.00
-# Visual Studio 2010
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.28010.2046
+MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "CPUBloom", "CPUBloom\CPUBloom.vcxproj", "{FD3B134E-E58B-4A9D-88A2-4806677A6BB0}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ParallelForLoopBenchmark", "ParallelForLoopBenchmark\ParallelForLoopBenchmark.vcxproj", "{84C81AD3-81A4-45FD-A53C-EA0AB8CD5A52}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -13,8 +17,15 @@ Global
 		{FD3B134E-E58B-4A9D-88A2-4806677A6BB0}.Debug|Win32.Build.0 = Debug|Win32
 		{FD3B134E-E58B-4A9D-88A2-4806677A6BB0}.Release|Win32.ActiveCfg = Release|Win32
 		{FD3B134E-E58B-4A9D-88A2-4806677A6BB0}.Release|Win32.Build.0 = Release|Win32
+		{84C81AD3-81A4-45FD-A53C-EA0AB8CD5A52}.Debug|Win32.ActiveCfg = Debug|Win32
+		{84C81AD3-81A4-45FD-A53C-EA0AB8CD5A52}.Debug|Win32.Build.0 = Debug|Win32
+		{84C81AD3-81A4-45FD-A53C-EA0AB8CD5A52}.Release|Win32.ActiveCfg = Release|Win32
+		{84C81AD3-81A4-45FD-A53C-EA0AB8CD5A52}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {5CC45271-B81A-4593-A732-983D3013F6BE}
 	EndGlobalSection
 EndGlobal

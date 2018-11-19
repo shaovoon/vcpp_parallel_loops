@@ -8,6 +8,9 @@
 #include "StopWatch.h"
 #include <omp.h>
 #include <ppl.h>
+#include <algorithm>
+#include <execution>
+#include <vector>
 
 const size_t TOTAL=50000000;
 BYTE* a = new BYTE[TOTAL];
@@ -28,6 +31,7 @@ void PPL();
 
 void AutoParallelizer();
 
+void ParallelForEach();
 
 int _tmain(int argc, _TCHAR* argv[])
 {
@@ -40,6 +44,8 @@ int _tmain(int argc, _TCHAR* argv[])
 	PPL();
 
 	AutoParallelizer();
+
+	ParallelForEach();
 
 	Destroy();
 
@@ -120,4 +126,18 @@ void AutoParallelizer()
 	UINT time = watch.Stop();
 
 	cout<<"Auto parallelizer loop timing:"<<time<<endl;
+}
+
+void ParallelForEach()
+{
+	StopWatch watch;
+	watch.Start();
+
+	std::for_each(std::execution::par, a, a+TOTAL, [&](BYTE i)
+	{
+		c[i] = a[i] * b[i];
+	});
+	UINT time = watch.Stop();
+
+	cout << "Parallel for_each timing:" << time << endl;
 }

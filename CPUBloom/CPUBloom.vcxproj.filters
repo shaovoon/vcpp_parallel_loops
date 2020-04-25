@@ -69,6 +69,9 @@
     <ClInclude Include="HyperThreading.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="BloomEffectSSE2.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CPUBloom.cpp">
@@ -96,6 +99,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="HyperThreading.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="BloomEffectSSE2.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

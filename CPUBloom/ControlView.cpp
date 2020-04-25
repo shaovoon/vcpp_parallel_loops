@@ -40,6 +40,7 @@ void CControlView::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_STATIC_AUTOP_RES, m_staticAutoPBenResult);
 	DDX_Radio(pDX, IDC_RDO_SERIAL, m_nLoopMethodSelected);
 	DDX_Control(pDX, IDC_STATIC_PFOREACH_RES, m_staticPForEachBenResult);
+	DDX_Control(pDX, IDC_CHK_USE_SSE2, m_chkUseSSE2);
 }
 
 BEGIN_MESSAGE_MAP(CControlView, CFormView)
@@ -55,6 +56,7 @@ BEGIN_MESSAGE_MAP(CControlView, CFormView)
 	ON_BN_CLICKED(IDC_RDO_SERIAL, &CControlView::OnClickedRdoSerial)
 	ON_BN_CLICKED(IDC_BTN_RESET, &CControlView::OnBnClickedBtnReset)
 	ON_BN_CLICKED(IDC_RDO_PFOREACH, &CControlView::OnBnClickedRdoPforeach)
+	ON_BN_CLICKED(IDC_CHK_USE_SSE2, &CControlView::OnClickedChkUseSse2)
 END_MESSAGE_MAP()
 
 
@@ -349,6 +351,7 @@ void CControlView::OnBnClickedBtnReset()
 	m_staticBloomIntResult.SetWindowTextW(L"1.00");
 	m_staticBloomSatResult.SetWindowTextW(L"1.00");
 	m_staticPicZoomOutResult.SetWindowTextW(L"1.00");
+	m_chkUseSSE2.SetCheck(BST_UNCHECKED);
 
 	pDoc->SetBaseIntensity(1.0f);
 	pDoc->SetBaseSaturation(1.0f);
@@ -356,7 +359,16 @@ void CControlView::OnBnClickedBtnReset()
 	pDoc->SetBloomSaturation(1.0f);
 	pDoc->SetLoopMethod(0);
 	pDoc->SetPicZoomOut(0.0);
+	pDoc->SetSSE2(false);
 
 	pDoc->EndReset();
 
+}
+
+
+void CControlView::OnClickedChkUseSse2()
+{
+	CCPUBloomDoc* pDoc = (CCPUBloomDoc*)(GetDocument());
+
+	pDoc->SetSSE2(m_chkUseSSE2.GetCheck() == BST_CHECKED);
 }

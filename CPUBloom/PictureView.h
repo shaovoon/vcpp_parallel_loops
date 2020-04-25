@@ -26,6 +26,7 @@ protected:
 	int m_nLoopMethod;
 	bool m_bDirty;
 	unsigned int m_nlogicalProcessorCount; 
+	bool m_bSSE2;
 
 public:
 	void SetBloomSaturation(float val);
@@ -34,6 +35,8 @@ public:
 	void SetBaseIntensity(float val);
 	void SetPicZoomOut(float val);
 	void SetLoopMethod(int method);
+	void SetSSE2(bool enable);
+
 
 	bool BenchmarkSerial();
 	bool BenchmarkOpenMP();

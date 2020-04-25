@@ -71,6 +71,8 @@ public:
 	afx_msg void OnBnClickedBtnReset();
 	CStatic m_staticPForEachBenResult;
 	afx_msg void OnBnClickedRdoPforeach();
+	CButton m_chkUseSSE2;
+	afx_msg void OnClickedChkUseSse2();
 };
 
 

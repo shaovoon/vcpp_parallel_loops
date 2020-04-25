@@ -5,11 +5,13 @@
 #include "CPUBloom.h"
 #include "PictureView.h"
 #include "BloomEffect.h"
+#include "BloomEffectSSE2.h"
 #include "CPUBloomDoc.h"
 #include "HyperThreading.h"
 #include <ppl.h>
 #include <algorithm>
 #include <execution>
+
 // CPictureView
 
 IMPLEMENT_DYNCREATE(CPictureView, CScrollView)
@@ -26,7 +28,7 @@ CPictureView::CPictureView()
 , m_nLoopMethod(0)
 , m_bDirty(false)
 , m_bResetInProgress(false)
-
+, m_bSSE2(false)
 {
 	Gdiplus::GdiplusStartup(&m_gdiplusToken, &m_gdiplusStartupInput, NULL);
 
@@ -192,6 +194,11 @@ void CPictureView::OnDraw(CDC* pDC)
 
 		if(m_bDirty)
 		{
+			//if (m_bSSE2)
+			//	OutputDebugStringA("SSE2=1");
+			//else
+			//	OutputDebugStringA("SSE2=0");
+
 			if(m_nLoopMethod==BENCHMARK_SERIAL)
 			{
 				BenchmarkSerial();
@@ -336,6 +343,15 @@ void CPictureView::SetLoopMethod(int method)
 		Invalidate(FALSE);
 }
 
+void CPictureView::SetSSE2(bool enable)
+{
+	m_bSSE2 = enable;
+	m_bDirty = true;
+
+	if (m_bResetInProgress == false)
+		Invalidate(FALSE);
+}
+
 bool CPictureView::BenchmarkSerial()
 {
 	if(m_pBmp==NULL||m_pBmpBloom==NULL)
@@ -373,14 +389,30 @@ bool CPictureView::BenchmarkSerial()
 
 	DWORD startTime = timeGetTime();
 
-	for(UINT row = 0; row < bitmapDataDest.Height; ++row)
+	if (m_bSSE2)
 	{
-		BloomEffect effect(m_fBloomIntensity, m_fBloomSaturation, m_fBaseIntensity, m_fBaseSaturation);
-		for(UINT col = 0; col < bitmapDataDest.Width; ++col)
+		for (UINT row = 0; row < bitmapDataDest.Height; ++row)
 		{
-			UINT index = row * stride + col;
+			BloomEffectSSE2 effect(m_fBloomIntensity, m_fBloomSaturation, m_fBaseIntensity, m_fBaseSaturation);
+			for (UINT col = 0; col < bitmapDataDest.Width; ++col)
+			{
+				UINT index = row * stride + col;
 
-			pixelsDest[index] = effect.ComputeBloomInt(pixelsSrc[index]);
+				pixelsDest[index] = effect.ComputeBloomInt(pixelsSrc[index]);
+			}
+		}
+	}
+	else
+	{
+		for (UINT row = 0; row < bitmapDataDest.Height; ++row)
+		{
+			BloomEffect effect(m_fBloomIntensity, m_fBloomSaturation, m_fBaseIntensity, m_fBaseSaturation);
+			for (UINT col = 0; col < bitmapDataDest.Width; ++col)
+			{
+				UINT index = row * stride + col;
+
+				pixelsDest[index] = effect.ComputeBloomInt(pixelsSrc[index]);
+			}
 		}
 	}
 
@@ -431,18 +463,34 @@ bool CPictureView::BenchmarkOpenMP()
 
 	DWORD startTime = timeGetTime();
 
-	#pragma omp parallel for
-	for(int row = 0; row < bitmapDataDest.Height; ++row)
+	if (m_bSSE2)
 	{
-		BloomEffect effect(m_fBloomIntensity, m_fBloomSaturation, m_fBaseIntensity, m_fBaseSaturation);
-		for(UINT col = 0; col < bitmapDataDest.Width; ++col)
-		{
-			UINT index = row * stride + col;
 
-			pixelsDest[index] = effect.ComputeBloomInt(pixelsSrc[index]);
+#pragma omp parallel for
+		for (int row = 0; row < bitmapDataDest.Height; ++row)
+		{
+			BloomEffectSSE2 effect(m_fBloomIntensity, m_fBloomSaturation, m_fBaseIntensity, m_fBaseSaturation);
+			for (UINT col = 0; col < bitmapDataDest.Width; ++col)
+			{
+				UINT index = row * stride + col;
+
+				pixelsDest[index] = effect.ComputeBloomInt(pixelsSrc[index]);
+			}
 		}
 	}
+	else
+	{
+		for (int row = 0; row < bitmapDataDest.Height; ++row)
+		{
+			BloomEffect effect(m_fBloomIntensity, m_fBloomSaturation, m_fBaseIntensity, m_fBaseSaturation);
+			for (UINT col = 0; col < bitmapDataDest.Width; ++col)
+			{
+				UINT index = row * stride + col;
 
+				pixelsDest[index] = effect.ComputeBloomInt(pixelsSrc[index]);
+			}
+		}
+	}
 	DWORD endTime = timeGetTime();
 	CCPUBloomDoc* pDoc = (CCPUBloomDoc*)(GetDocument());
 	pDoc->SetOpenMPBenResult(endTime-startTime);
@@ -491,17 +539,32 @@ bool CPictureView::BenchmarkPPL()
 	DWORD startTime = timeGetTime();
 
 	using namespace Concurrency;
-	parallel_for((UINT)0, bitmapDataDest.Height, [&](UINT row)
+	if (m_bSSE2)
 	{
-		BloomEffect effect(m_fBloomIntensity, m_fBloomSaturation, m_fBaseIntensity, m_fBaseSaturation);
-		for(UINT col = 0; col < bitmapDataDest.Width; ++col)
-		{
-			UINT index = row * stride + col;
+		parallel_for((UINT)0, bitmapDataDest.Height, [&](UINT row)
+			{
+				BloomEffectSSE2 effect(m_fBloomIntensity, m_fBloomSaturation, m_fBaseIntensity, m_fBaseSaturation);
+				for (UINT col = 0; col < bitmapDataDest.Width; ++col)
+				{
+					UINT index = row * stride + col;
 
-			pixelsDest[index] = effect.ComputeBloomInt(pixelsSrc[index]);
-		}
-	});
+					pixelsDest[index] = effect.ComputeBloomInt(pixelsSrc[index]);
+				}
+			});
+	}
+	else
+	{
+		parallel_for((UINT)0, bitmapDataDest.Height, [&](UINT row)
+			{
+				BloomEffect effect(m_fBloomIntensity, m_fBloomSaturation, m_fBaseIntensity, m_fBaseSaturation);
+				for (UINT col = 0; col < bitmapDataDest.Width; ++col)
+				{
+					UINT index = row * stride + col;
 
+					pixelsDest[index] = effect.ComputeBloomInt(pixelsSrc[index]);
+				}
+			});
+	}
 	DWORD endTime = timeGetTime();
 	CCPUBloomDoc* pDoc = (CCPUBloomDoc*)(GetDocument());
 	pDoc->SetPPLBenResult(endTime-startTime);
@@ -549,18 +612,34 @@ bool CPictureView::BenchmarkAutoP()
 
 	DWORD startTime = timeGetTime();
 
-	#pragma loop(hint_parallel(8))
-	for(UINT row = 0; row < bitmapDataDest.Height; ++row)
+	if (m_bSSE2)
 	{
-		BloomEffect effect(m_fBloomIntensity, m_fBloomSaturation, m_fBaseIntensity, m_fBaseSaturation);
-		for(UINT col = 0; col < bitmapDataDest.Width; ++col)
+#pragma loop(hint_parallel(8))
+		for (UINT row = 0; row < bitmapDataDest.Height; ++row)
 		{
-			UINT index = row * stride + col;
+			BloomEffectSSE2 effect(m_fBloomIntensity, m_fBloomSaturation, m_fBaseIntensity, m_fBaseSaturation);
+			for (UINT col = 0; col < bitmapDataDest.Width; ++col)
+			{
+				UINT index = row * stride + col;
 
-			pixelsDest[index] = effect.ComputeBloomInt(pixelsSrc[index]);
+				pixelsDest[index] = effect.ComputeBloomInt(pixelsSrc[index]);
+			}
 		}
 	}
+	else
+	{
+#pragma loop(hint_parallel(8))
+		for (UINT row = 0; row < bitmapDataDest.Height; ++row)
+		{
+			BloomEffect effect(m_fBloomIntensity, m_fBloomSaturation, m_fBaseIntensity, m_fBaseSaturation);
+			for (UINT col = 0; col < bitmapDataDest.Width; ++col)
+			{
+				UINT index = row * stride + col;
 
+				pixelsDest[index] = effect.ComputeBloomInt(pixelsSrc[index]);
+			}
+		}
+	}
 	DWORD endTime = timeGetTime();
 	CCPUBloomDoc* pDoc = (CCPUBloomDoc*)(GetDocument());
 	pDoc->SetAutoPBenResult(endTime-startTime);
@@ -611,17 +690,32 @@ bool CPictureView::BenchmarkParallelForEach()
 
 	DWORD startTime = timeGetTime();
 
-	std::for_each(std::execution::par, std::begin(vec_cnt), std::end(vec_cnt), [&](UINT row)
+	if (m_bSSE2)
 	{
-		BloomEffect effect(m_fBloomIntensity, m_fBloomSaturation, m_fBaseIntensity, m_fBaseSaturation);
-		for (UINT col = 0; col < bitmapDataDest.Width; ++col)
-		{
-			UINT index = row * stride + col;
+		std::for_each(std::execution::par, std::begin(vec_cnt), std::end(vec_cnt), [&](UINT row)
+			{
+				BloomEffectSSE2 effect(m_fBloomIntensity, m_fBloomSaturation, m_fBaseIntensity, m_fBaseSaturation);
+				for (UINT col = 0; col < bitmapDataDest.Width; ++col)
+				{
+					UINT index = row * stride + col;
 
-			pixelsDest[index] = effect.ComputeBloomInt(pixelsSrc[index]);
-		}
-	});
+					pixelsDest[index] = effect.ComputeBloomInt(pixelsSrc[index]);
+				}
+			});
+	}
+	else
+	{
+		std::for_each(std::execution::par, std::begin(vec_cnt), std::end(vec_cnt), [&](UINT row)
+			{
+				BloomEffect effect(m_fBloomIntensity, m_fBloomSaturation, m_fBaseIntensity, m_fBaseSaturation);
+				for (UINT col = 0; col < bitmapDataDest.Width; ++col)
+				{
+					UINT index = row * stride + col;
 
+					pixelsDest[index] = effect.ComputeBloomInt(pixelsSrc[index]);
+				}
+			});
+	}
 	DWORD endTime = timeGetTime();
 	CCPUBloomDoc* pDoc = (CCPUBloomDoc*)(GetDocument());
 	pDoc->SetPForEachBenResult(endTime - startTime);

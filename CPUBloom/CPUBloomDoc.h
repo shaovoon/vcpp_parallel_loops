@@ -42,6 +42,7 @@ public:
 	void SetBaseIntensity(float val);
 	void SetPicZoomOut(float val);
 	void SetLoopMethod(int method);
+	void SetSSE2(bool enable);
 
 	void SetSerialBenResult(int val);
 	void SetOpenMPBenResult(int val);

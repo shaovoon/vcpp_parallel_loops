@@ -35,8 +35,7 @@ public:
 	void AdjustSaturation(F32vec4& color, const F32vec4& saturation);
 	void lerp(const F32vec4& grey, const F32vec4& color, const F32vec4& saturation, F32vec4& dest);
 	F32vec4 saturate(F32vec4& v);
-	float saturate_single(float a);
-	void ComputeBloom(float color[4], float dest[4]);
+	void ComputeBloom(F32vec4& color, F32vec4& dest);
 	UINT ComputeBloomInt(UINT color);
 };
 

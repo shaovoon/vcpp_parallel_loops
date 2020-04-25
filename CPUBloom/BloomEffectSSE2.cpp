@@ -42,31 +42,19 @@ F32vec4 BloomEffectSSE2::saturate(F32vec4& v)
 
 	F32vec4 res = v;
 
-	res = _mm_max_ps((__m128)res, (__m128)kMin);
-	res = _mm_min_ps((__m128)res, (__m128)kMax);
+	res = simd_max(res, kMin);
+	res = simd_min(res, kMax);
 
 	return res;
 }
 
-float BloomEffectSSE2::saturate_single(float a)
-{
-	if (a > 1.0f)
-		a = 1.0f;
-	if (a < 0.0f)
-		a = 0.0f;
-
-	return a;
-}
-
-
-void BloomEffectSSE2::ComputeBloom(float color[4], float dest[4])
+void BloomEffectSSE2::ComputeBloom(F32vec4& color, F32vec4& dest)
 {
 	static const F32vec4 kMax(1.0f);
 	static const F32vec4 BloomThreshold(0.25f);
 
-	F32vec4 color_vec(color[3], color[2], color[1], color[0]);
 	F32vec4 alpha(color[0]);
-	F32vec4 base = color_vec / alpha; // color[0] is alpha
+	F32vec4 base = color / alpha; // color[0] is alpha
 
 	F32vec4 bloom = saturate((base - BloomThreshold) / (kMax - BloomThreshold));
 
@@ -83,31 +71,29 @@ void BloomEffectSSE2::ComputeBloom(float color[4], float dest[4])
 	base *= (kMax - saturate(bloom));
 
 	// Combine the two images.
-	F32vec4 dest_vec = (base + bloom) * alpha;
-
-	dest[1] = dest_vec[1];
-	dest[2] = dest_vec[2];
-	dest[3] = dest_vec[3];
+	dest = (base + bloom) * alpha;
 	dest[0] = alpha[0];
-
 }
 
 UINT BloomEffectSSE2::ComputeBloomInt(UINT color)
 {
-	float colorf[4];
-	float destf[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
+	F32vec4 colorf;
+	F32vec4 destf(0.0f);
 
-	colorf[0] = ((color & 0xFF000000) >> 24) / 255.0f;
-	colorf[1] = ((color & 0xFF0000) >> 16) / 255.0f;
-	colorf[2] = ((color & 0xFF00) >> 8) / 255.0f;
-	colorf[3] = (color & 0xFF) / 255.0f;
+	colorf[0] = ((color & 0xFF000000) >> 24);
+	colorf[1] = ((color & 0xFF0000) >> 16);
+	colorf[2] = ((color & 0xFF00) >> 8);
+	colorf[3] = (color & 0xFF);
+
+	colorf /= F32vec4(255.0f);
 
 	ComputeBloom(colorf, destf);
+	destf = saturate(destf);
 
-	BYTE destA = saturate_single(destf[0]) * 255;
-	BYTE destR = saturate_single(destf[1]) * 255;
-	BYTE destG = saturate_single(destf[2]) * 255;
-	BYTE destB = saturate_single(destf[3]) * 255;
+	BYTE destA = destf[0] * 255;
+	BYTE destR = destf[1] * 255;
+	BYTE destG = destf[2] * 255;
+	BYTE destB = destf[3] * 255;
 
 	UINT dest = destA << 24 | destR << 16 | destG << 8 | destB;
 

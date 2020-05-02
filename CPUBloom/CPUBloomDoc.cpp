@@ -202,6 +202,15 @@ void CCPUBloomDoc::SetLoopMethod(int method)
 	pView->SetLoopMethod(method);
 }
 
+void CCPUBloomDoc::SetSIMDMethod(int method)
+{
+	POSITION posView = GetFirstViewPosition();
+	CControlView* pCtrlView = (CControlView*)(GetNextView(posView));
+	CPictureView* pView = (CPictureView*)(GetNextView(posView));
+
+	pView->SetSIMDMethod(method);
+}
+
 void CCPUBloomDoc::SetSSE2(bool enable)
 {
 	POSITION posView = GetFirstViewPosition();

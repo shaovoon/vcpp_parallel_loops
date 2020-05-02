@@ -24,6 +24,7 @@ protected:
 	float m_fPicZoomOut;
 	float m_fPrevPicZoomOut;
 	int m_nLoopMethod;
+	int m_nSIMDMethod;
 	bool m_bDirty;
 	unsigned int m_nlogicalProcessorCount; 
 	bool m_bSSE2;
@@ -35,6 +36,7 @@ public:
 	void SetBaseIntensity(float val);
 	void SetPicZoomOut(float val);
 	void SetLoopMethod(int method);
+	void SetSIMDMethod(int method);
 	void SetSSE2(bool enable);
 
 

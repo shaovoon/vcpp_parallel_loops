@@ -6,6 +6,7 @@
 #include "PictureView.h"
 #include "BloomEffect.h"
 #include "BloomEffectSSE2.h"
+#include "BloomEffectAVX.h"
 #include "CPUBloomDoc.h"
 #include "HyperThreading.h"
 #include <ppl.h>
@@ -26,6 +27,7 @@ CPictureView::CPictureView()
 , m_fPicZoomOut(0.0f)
 , m_fPrevPicZoomOut(0.0f)
 , m_nLoopMethod(0)
+, m_nSIMDMethod(0)
 , m_bDirty(false)
 , m_bResetInProgress(false)
 , m_bSSE2(false)
@@ -194,10 +196,12 @@ void CPictureView::OnDraw(CDC* pDC)
 
 		if(m_bDirty)
 		{
-			//if (m_bSSE2)
-			//	OutputDebugStringA("SSE2=1");
-			//else
-			//	OutputDebugStringA("SSE2=0");
+			if (m_nSIMDMethod == 0)
+				OutputDebugStringA("m_nSIMDMethod=0");
+			else if (m_nSIMDMethod == 1)
+				OutputDebugStringA("m_nSIMDMethod=1");
+			else if (m_nSIMDMethod == 2)
+				OutputDebugStringA("m_nSIMDMethod=2");
 
 			if(m_nLoopMethod==BENCHMARK_SERIAL)
 			{
@@ -343,6 +347,15 @@ void CPictureView::SetLoopMethod(int method)
 		Invalidate(FALSE);
 }
 
+void CPictureView::SetSIMDMethod(int method)
+{
+	m_nSIMDMethod = method;
+	m_bDirty = true;
+
+	if (m_bResetInProgress == false)
+		Invalidate(FALSE);
+}
+
 void CPictureView::SetSSE2(bool enable)
 {
 	m_bSSE2 = enable;
@@ -389,7 +402,7 @@ bool CPictureView::BenchmarkSerial()
 
 	DWORD startTime = timeGetTime();
 
-	if (m_bSSE2)
+	if (m_nSIMDMethod==SIMD_SSE)
 	{
 		for (UINT row = 0; row < bitmapDataDest.Height; ++row)
 		{
@@ -402,7 +415,7 @@ bool CPictureView::BenchmarkSerial()
 			}
 		}
 	}
-	else
+	else if (m_nSIMDMethod == SIMD_NONE)
 	{
 		for (UINT row = 0; row < bitmapDataDest.Height; ++row)
 		{
@@ -412,6 +425,21 @@ bool CPictureView::BenchmarkSerial()
 				UINT index = row * stride + col;
 
 				pixelsDest[index] = effect.ComputeBloomInt(pixelsSrc[index]);
+			}
+		}
+	}
+	else if (m_nSIMDMethod == SIMD_AVX)
+	{
+		for (UINT row = 0; row < bitmapDataDest.Height; row+=2)
+		{
+			BloomEffectAVX effect(m_fBloomIntensity, m_fBloomSaturation, m_fBaseIntensity, m_fBaseSaturation);
+			for (UINT col = 0; col < bitmapDataDest.Width; ++col)
+			{
+				UINT index = row * stride + col;
+
+				std::pair<UINT, UINT> pr = effect.ComputeBloomInt(pixelsSrc[index], pixelsSrc[index+1]);
+				pixelsDest[index] = pr.first;
+				pixelsDest[index+1] = pr.second;
 			}
 		}
 	}
@@ -463,7 +491,7 @@ bool CPictureView::BenchmarkOpenMP()
 
 	DWORD startTime = timeGetTime();
 
-	if (m_bSSE2)
+	if (m_nSIMDMethod == SIMD_SSE)
 	{
 
 #pragma omp parallel for
@@ -478,8 +506,9 @@ bool CPictureView::BenchmarkOpenMP()
 			}
 		}
 	}
-	else
+	else if (m_nSIMDMethod == SIMD_NONE)
 	{
+#pragma omp parallel for
 		for (int row = 0; row < bitmapDataDest.Height; ++row)
 		{
 			BloomEffect effect(m_fBloomIntensity, m_fBloomSaturation, m_fBaseIntensity, m_fBaseSaturation);
@@ -488,6 +517,22 @@ bool CPictureView::BenchmarkOpenMP()
 				UINT index = row * stride + col;
 
 				pixelsDest[index] = effect.ComputeBloomInt(pixelsSrc[index]);
+			}
+		}
+	}
+	else if (m_nSIMDMethod == SIMD_AVX)
+	{
+#pragma omp parallel for
+		for (int row = 0; row < bitmapDataDest.Height; row+=2)
+		{
+			BloomEffectAVX effect(m_fBloomIntensity, m_fBloomSaturation, m_fBaseIntensity, m_fBaseSaturation);
+			for (UINT col = 0; col < bitmapDataDest.Width; ++col)
+			{
+				UINT index = row * stride + col;
+
+				std::pair<UINT, UINT> pr = effect.ComputeBloomInt(pixelsSrc[index], pixelsSrc[index + 1]);
+				pixelsDest[index] = pr.first;
+				pixelsDest[index + 1] = pr.second;
 			}
 		}
 	}
@@ -539,7 +584,7 @@ bool CPictureView::BenchmarkPPL()
 	DWORD startTime = timeGetTime();
 
 	using namespace Concurrency;
-	if (m_bSSE2)
+	if (m_nSIMDMethod == SIMD_SSE)
 	{
 		parallel_for((UINT)0, bitmapDataDest.Height, [&](UINT row)
 			{
@@ -552,7 +597,7 @@ bool CPictureView::BenchmarkPPL()
 				}
 			});
 	}
-	else
+	else if (m_nSIMDMethod == SIMD_NONE)
 	{
 		parallel_for((UINT)0, bitmapDataDest.Height, [&](UINT row)
 			{
@@ -612,7 +657,7 @@ bool CPictureView::BenchmarkAutoP()
 
 	DWORD startTime = timeGetTime();
 
-	if (m_bSSE2)
+	if (m_nSIMDMethod == SIMD_SSE)
 	{
 #pragma loop(hint_parallel(8))
 		for (UINT row = 0; row < bitmapDataDest.Height; ++row)
@@ -626,7 +671,7 @@ bool CPictureView::BenchmarkAutoP()
 			}
 		}
 	}
-	else
+	else if (m_nSIMDMethod == SIMD_NONE)
 	{
 #pragma loop(hint_parallel(8))
 		for (UINT row = 0; row < bitmapDataDest.Height; ++row)
@@ -637,6 +682,22 @@ bool CPictureView::BenchmarkAutoP()
 				UINT index = row * stride + col;
 
 				pixelsDest[index] = effect.ComputeBloomInt(pixelsSrc[index]);
+			}
+		}
+	}
+	else if (m_nSIMDMethod == SIMD_AVX)
+	{
+#pragma loop(hint_parallel(8))
+		for (UINT row = 0; row < bitmapDataDest.Height; row+=2)
+		{
+			BloomEffectAVX effect(m_fBloomIntensity, m_fBloomSaturation, m_fBaseIntensity, m_fBaseSaturation);
+			for (UINT col = 0; col < bitmapDataDest.Width; ++col)
+			{
+				UINT index = row * stride + col;
+
+				std::pair<UINT, UINT> pr = effect.ComputeBloomInt(pixelsSrc[index], pixelsSrc[index + 1]);
+				pixelsDest[index] = pr.first;
+				pixelsDest[index + 1] = pr.second;
 			}
 		}
 	}
@@ -690,7 +751,7 @@ bool CPictureView::BenchmarkParallelForEach()
 
 	DWORD startTime = timeGetTime();
 
-	if (m_bSSE2)
+	if (m_nSIMDMethod == SIMD_SSE)
 	{
 		std::for_each(std::execution::par, std::begin(vec_cnt), std::end(vec_cnt), [&](UINT row)
 			{
@@ -703,7 +764,7 @@ bool CPictureView::BenchmarkParallelForEach()
 				}
 			});
 	}
-	else
+	else if (m_nSIMDMethod == SIMD_NONE)
 	{
 		std::for_each(std::execution::par, std::begin(vec_cnt), std::end(vec_cnt), [&](UINT row)
 			{

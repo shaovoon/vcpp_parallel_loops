@@ -14,6 +14,7 @@ CControlView::CControlView()
 	: CFormView(CControlView::IDD),
 	m_pWndTarget(NULL)
 	, m_nLoopMethodSelected(0)
+	, m_nSIMDMethodSelected(0)
 {
 }
 
@@ -39,8 +40,8 @@ void CControlView::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_STATIC_PPL_RES, m_staticPPLBenResult);
 	DDX_Control(pDX, IDC_STATIC_AUTOP_RES, m_staticAutoPBenResult);
 	DDX_Radio(pDX, IDC_RDO_SERIAL, m_nLoopMethodSelected);
+	DDX_Radio(pDX, IDC_RDO_SIMD_NONE, m_nSIMDMethodSelected);
 	DDX_Control(pDX, IDC_STATIC_PFOREACH_RES, m_staticPForEachBenResult);
-	DDX_Control(pDX, IDC_CHK_USE_SSE2, m_chkUseSSE2);
 }
 
 BEGIN_MESSAGE_MAP(CControlView, CFormView)
@@ -56,7 +57,9 @@ BEGIN_MESSAGE_MAP(CControlView, CFormView)
 	ON_BN_CLICKED(IDC_RDO_SERIAL, &CControlView::OnClickedRdoSerial)
 	ON_BN_CLICKED(IDC_BTN_RESET, &CControlView::OnBnClickedBtnReset)
 	ON_BN_CLICKED(IDC_RDO_PFOREACH, &CControlView::OnBnClickedRdoPforeach)
-	ON_BN_CLICKED(IDC_CHK_USE_SSE2, &CControlView::OnClickedChkUseSse2)
+	ON_COMMAND(IDC_RDO_SIMD_NONE, &CControlView::OnRdoSIMDNone)
+	ON_COMMAND(IDC_RDO_SIMD_SSE, &CControlView::OnRdoSIMDSSE)
+	ON_COMMAND(IDC_RDO_SIMD_AVX, &CControlView::OnRdoSIMDAVX)
 END_MESSAGE_MAP()
 
 
@@ -328,6 +331,30 @@ void CControlView::OnBnClickedRdoPforeach()
 	pDoc->SetLoopMethod(m_nLoopMethodSelected);
 }
 
+void CControlView::OnRdoSIMDNone()
+{
+	UpdateData();
+
+	CCPUBloomDoc* pDoc = (CCPUBloomDoc*)(GetDocument());
+	pDoc->SetSIMDMethod(m_nSIMDMethodSelected);
+}
+
+void CControlView::OnRdoSIMDSSE()
+{
+	UpdateData();
+
+	CCPUBloomDoc* pDoc = (CCPUBloomDoc*)(GetDocument());
+	pDoc->SetSIMDMethod(m_nSIMDMethodSelected);
+}
+
+void CControlView::OnRdoSIMDAVX()
+{
+	UpdateData();
+
+	CCPUBloomDoc* pDoc = (CCPUBloomDoc*)(GetDocument());
+	pDoc->SetSIMDMethod(m_nSIMDMethodSelected);
+}
+
 void CControlView::OnBnClickedBtnReset()
 {
 	CCPUBloomDoc* pDoc = (CCPUBloomDoc*)(GetDocument());
@@ -339,6 +366,7 @@ void CControlView::OnBnClickedBtnReset()
 	m_sliderBaseSat.SetPos(100);
 	m_sliderPicZoomOut.SetPos(0);
 	m_nLoopMethodSelected = 0;
+	m_nSIMDMethodSelected = 0;
 	UpdateData(FALSE);
 
 	m_staticSerialBenResult.SetWindowTextW(L"NA");

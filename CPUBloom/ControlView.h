@@ -64,6 +64,7 @@ public:
 	CStatic m_staticPPLBenResult;
 	CStatic m_staticAutoPBenResult;
 	int m_nLoopMethodSelected;
+	int m_nSIMDMethodSelected;
 	afx_msg void OnRdoOpenMP();
 	afx_msg void OnRdoPPL();
 	afx_msg void OnRdoAutoP();
@@ -73,6 +74,9 @@ public:
 	afx_msg void OnBnClickedRdoPforeach();
 	CButton m_chkUseSSE2;
 	afx_msg void OnClickedChkUseSse2();
+	afx_msg void OnRdoSIMDNone();
+	afx_msg void OnRdoSIMDSSE();
+	afx_msg void OnRdoSIMDAVX();
 };
 
 

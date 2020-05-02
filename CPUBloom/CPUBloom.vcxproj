@@ -213,6 +213,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BloomEffect.h" />
+    <ClInclude Include="BloomEffectAVX.h" />
     <ClInclude Include="BloomEffectSSE2.h" />
     <ClInclude Include="ControlView.h" />
     <ClInclude Include="CPUBloom.h" />
@@ -227,6 +228,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="BloomEffect.cpp" />
+    <ClCompile Include="BloomEffectAVX.cpp" />
     <ClCompile Include="BloomEffectSSE2.cpp" />
     <ClCompile Include="ControlView.cpp" />
     <ClCompile Include="CPUBloom.cpp" />

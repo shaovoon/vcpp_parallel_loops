@@ -50,6 +50,11 @@
 #define BENCHMARK_AUTOP 3
 #define BENCHMARK_PARALLEL_FOREACH 4
 
+#define SIMD_NONE 0
+#define SIMD_SSE 1
+#define SIMD_AVX 2
+
+
 #include <MMSystem.h>
 #pragma comment(lib, "winmm.lib")
 

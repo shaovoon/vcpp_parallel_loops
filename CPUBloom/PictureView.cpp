@@ -465,7 +465,6 @@ bool CPictureView::BenchmarkOpenMP()
 
 	if (m_bSSE2)
 	{
-
 #pragma omp parallel for
 		for (int row = 0; row < bitmapDataDest.Height; ++row)
 		{
@@ -480,6 +479,7 @@ bool CPictureView::BenchmarkOpenMP()
 	}
 	else
 	{
+#pragma omp parallel for
 		for (int row = 0; row < bitmapDataDest.Height; ++row)
 		{
 			BloomEffect effect(m_fBloomIntensity, m_fBloomSaturation, m_fBaseIntensity, m_fBaseSaturation);

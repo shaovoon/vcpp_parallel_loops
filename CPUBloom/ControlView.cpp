@@ -260,6 +260,11 @@ void CControlView::SetOpenMPBenResult(int val)
 
 void CControlView::SetPPLBenResult(int val)
 {
+	if(val==0)
+	{
+		m_staticPPLBenResult.SetWindowTextW(L"NotSupported");
+		return;
+	}
 	CString str;
 	str.Format(L"%d", val);
 	m_staticPPLBenResult.SetWindowTextW(str+L"ms");
@@ -274,6 +279,12 @@ void CControlView::SetAutoPBenResult(int val)
 
 void CControlView::SetPForEachBenResult(int val)
 {
+	if (val == 0)
+	{
+		m_staticPForEachBenResult.SetWindowTextW(L"NotSupported");
+		return;
+	}
+
 	CString str;
 	str.Format(L"%d", val);
 	m_staticPForEachBenResult.SetWindowTextW(str + L"ms");

@@ -12,7 +12,7 @@
 #include <ppl.h>
 #include <algorithm>
 #include <execution>
-
+//#include "SimpleBinStream.h"
 // CPictureView
 
 IMPLEMENT_DYNCREATE(CPictureView, CScrollView)
@@ -399,6 +399,23 @@ bool CPictureView::BenchmarkSerial()
 		return false;
 
 	int stride = bitmapDataDest.Stride >> 2;
+
+
+	//simple::file_ostream<std::true_type> out("c:\\temp\\image.bin");
+
+	//for (UINT row = 0; row < bitmapDataDest.Height; ++row)
+	//{
+	//	for (UINT col = 0; col < bitmapDataDest.Width; ++col)
+	//	{
+	//		UINT index = row * stride + col;
+
+	//		out << pixelsSrc[index];
+	//	}
+	//}
+
+	//out.flush();
+	//out.close();
+
 
 	DWORD startTime = timeGetTime();
 

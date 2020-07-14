@@ -75,6 +75,9 @@
     <ClInclude Include="BloomEffectAVX.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="SimpleBinStream.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CPUBloom.cpp">
